@@ -1,0 +1,9 @@
+../Core/Src/main.c:73:5:main	8	static
+../Core/Src/main.c:136:6:SystemClock_Config	88	static
+../Core/Src/main.c:183:13:MX_GPIO_Init	40	static
+../Core/Src/main.c:211:6:hold	16	static
+../Core/Src/main.c:218:6:stophold	8	static
+../Core/Src/main.c:225:6:SendKey	16	static
+../Core/Src/main.c:238:6:SendCombo	16	static
+../Core/Src/main.c:251:6:send	24	static
+../Core/Src/main.c:319:6:Error_Handler	4	static,ignoring_inline_asm
