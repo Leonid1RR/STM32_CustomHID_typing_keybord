@@ -264,14 +264,21 @@ void keybord(){
 	send("cmd");
 	SendKey(0x28);  // Enter
 	HAL_Delay(500);// задержка, чтобы успеть открыть cmd
-	 // "color 2" + Enter и "dir /s" + Enter
-	send("color 2");
+	send("notepad");
 	SendKey(0x28);  // Enter
-	HAL_Delay(300); // Задержка между командами
-	send("dir /s");
-	SendKey(0x28);  // Enter
-
+	HAL_Delay(500);// задержка, чтобы успеть открыть notepad
+	SendCombo(0x04, 0x02);
+	HAL_Delay(500);
+		memset(report, 0, sizeof(report));
+		report[0] = 0x06;
+		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
+		HAL_Delay(80);
+		USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
+		HAL_Delay(80);
+		memset(report, 0, sizeof(report));
+	send("ghbdtn");
 	GPIOC->ODR &= ~ (1 << 13);// включаем светодиод (работа завершилась)
+
 
 }
 /* USER CODE END 4 */

@@ -6,4 +6,4 @@
 ../Core/Src/main.c:182:6:SendCombo	1
 ../Core/Src/main.c:195:6:send	51
 ../Core/Src/main.c:257:6:keybord	1
-../Core/Src/main.c:283:6:Error_Handler	1
+../Core/Src/main.c:290:6:Error_Handler	1
