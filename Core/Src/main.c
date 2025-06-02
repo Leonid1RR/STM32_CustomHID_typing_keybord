@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
+#include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -50,15 +51,8 @@ uint8_t report[8] = {0};
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
-
-void hold(uint8_t modifier);
-void stophold();
-void SendKey(uint8_t keycode);
-void send(const char* text);
-void SendCombo(uint8_t modifier, uint8_t keycode);
 /* USER CODE BEGIN PFP */
-
+void keybord();
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -97,31 +91,13 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-
+keybord();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
+  while (1){
 
-  {HAL_Delay(2000);//задержка чтобы винда успела определить устройство
-  GPIOC->ODR |= (1 << 13);// отключаем светодиод (чтоб показать что работа началась)
-	    // Нажимаем Win + R
-	    SendCombo(0x08, 0x15);  // 0x08 = Win, 0x15 = R
-
-	    //"cmd" + Enter
-	    send("cmd");
-	    SendKey(0x28);  // Enter
-
-	    // "color 2" + Enter и "dir /s" + Enter
-	    send("color 2");
-	    SendKey(0x28);  // Enter
-	    HAL_Delay(500); // Задержка между командами
-	    send("dir /s");
-	    SendKey(0x28);  // Enter
-
-	    GPIOC->ODR &= ~ (1 << 13);// включаем светодиод (работа завершилась)
-HAL_Delay(50000);//задержка чтобы устройство дало время его отключить
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -175,50 +151,18 @@ void SystemClock_Config(void)
   }
 }
 
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-
-  /* USER CODE END MX_GPIO_Init_1 */
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : PC13 */
-  GPIO_InitStruct.Pin = GPIO_PIN_13;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-
-  /* USER CODE END MX_GPIO_Init_2 */
-}
-
 /* USER CODE BEGIN 4 */
 void hold(uint8_t modifier){
 	memset(report, 0, sizeof(report));
     report[0] = modifier;  // Модификатор
     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
-    HAL_Delay(200);
+    HAL_Delay(50);
     memset(report, 0, sizeof(report));
 }
 void stophold(){
 	memset(report, 0, sizeof(report));
     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
-    HAL_Delay(200);
+    HAL_Delay(50);
 }
 
 // Функция для отправки одного символа (без модификаторов)
@@ -226,12 +170,12 @@ void SendKey(uint8_t keycode) {
 	memset(report, 0, sizeof(report));
     report[2] = keycode;  // Клавиша в третьем байте
     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
-    HAL_Delay(200);
+    HAL_Delay(80);
 
     // Отпускаем клавишу
     memset(report, 0, sizeof(report));
     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
-    HAL_Delay(200);
+    HAL_Delay(80);
 }
 
 // Функция для отправки комбинации с модификатором (например, Win)
@@ -240,12 +184,12 @@ void SendCombo(uint8_t modifier, uint8_t keycode) {
     report[0] = modifier;  // Модификатор в первом байте
     report[2] = keycode;   // Клавиша в третьем байте
     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
-    HAL_Delay(200);
+    HAL_Delay(80);
 
     // Отпускаем всё
     memset(report, 0, sizeof(report));
     USBD_CUSTOM_HID_SendReport(&hUsbDeviceFS, report, 8);
-    HAL_Delay(200);
+    HAL_Delay(80);
 }
 
 void send(const char* text) {
@@ -309,6 +253,26 @@ void send(const char* text) {
         // Отправка клавиши
         SendKey(keycode);
     }
+}
+void keybord(){
+	HAL_Delay(2000);
+	GPIOC->ODR |= (1 << 13);// отключаем светодиод (чтоб показать что работа началась)
+	// Нажимаем Win + R
+	SendCombo(0x08, 0x15);  // 0x08 = Win, 0x15 = R
+
+	//"cmd" + Enter
+	send("cmd");
+	SendKey(0x28);  // Enter
+	HAL_Delay(500);// задержка, чтобы успеть открыть cmd
+	 // "color 2" + Enter и "dir /s" + Enter
+	send("color 2");
+	SendKey(0x28);  // Enter
+	HAL_Delay(300); // Задержка между командами
+	send("dir /s");
+	SendKey(0x28);  // Enter
+
+	GPIOC->ODR &= ~ (1 << 13);// включаем светодиод (работа завершилась)
+
 }
 /* USER CODE END 4 */
 
